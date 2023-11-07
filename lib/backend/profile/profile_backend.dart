@@ -10,6 +10,7 @@ import 'package:eight_hundred_cal/services/cloudinary_setup.dart';
 import 'package:eight_hundred_cal/services/http_service.dart';
 import 'package:eight_hundred_cal/services/storage_service.dart';
 import 'package:eight_hundred_cal/utils/api_constants.dart';
+import 'package:eight_hundred_cal/utils/constants.dart';
 import 'package:eight_hundred_cal/utils/db_keys.dart';
 import 'package:eight_hundred_cal/widgets/show_loader_dialog.dart';
 import 'package:flutter/material.dart';
@@ -18,11 +19,13 @@ import 'package:image_picker/image_picker.dart';
 
 class ProfileBackend extends GetxController {
   ProfileModel? model;
+  String userToken = '';
 
   Future<bool> fetchProfileData() async {
     try {
       var c = Get.put(TranslatorBackend());
       String token = await StorageService().read(DbKeys.authToken);
+      userToken = token;
       var response =
           await HttpServices.getWithToken(ApiConstants.profile, token);
 
@@ -47,6 +50,36 @@ class ProfileBackend extends GetxController {
     } catch (e) {
       print("Fetching profile data failed: $e");
       return false;
+    }
+  }
+
+  Future<ProfileModel> fetchProfileData2(String token) async {
+    try {
+      var c = Get.put(TranslatorBackend());
+      var response =
+          await HttpServices.getWithToken(ApiConstants.profile, token);
+
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+        ProfileModel model2 = ProfileModel.fromJson(data['customer']);
+
+        model2.username = await c.translateText(model!.username);
+        model2.email = await c.translateText(model!.email);
+        model2.firstname = await c.translateText(model!.firstname);
+        model2.lastname = await c.translateText(model!.lastname);
+        model2.gender = await c.translateText(model!.gender);
+        model2.gender = await c.translateText(model!.gender);
+        model2.phonenumber = await c.translateText(model!.phonenumber);
+        model2.address = await c.translateText(model!.address);
+        update();
+        return model2;
+      } else {
+        print("Fetch profile data failed: ${response.statusCode}");
+      }
+      return dummyProfileModel;
+    } catch (e) {
+      print("Fetching profile data failed: $e");
+      return dummyProfileModel;
     }
   }
 

@@ -8,9 +8,12 @@ import 'package:eight_hundred_cal/backend/translator/translator_backend.dart';
 import 'package:eight_hundred_cal/model/profile/profile_model.dart';
 import 'package:eight_hundred_cal/screens/profile/widgets/add_profile_widget.dart';
 import 'package:eight_hundred_cal/screens/profile/widgets/profile_widget.dart';
+import 'package:eight_hundred_cal/screens/splash.dart';
+import 'package:eight_hundred_cal/services/storage_service.dart';
 import 'package:eight_hundred_cal/utils/app_text.dart';
 import 'package:eight_hundred_cal/utils/colors.dart';
 import 'package:eight_hundred_cal/utils/constants.dart';
+import 'package:eight_hundred_cal/utils/db_keys.dart';
 import 'package:eight_hundred_cal/widgets/custom_appbar.dart';
 import 'package:eight_hundred_cal/widgets/custom_button.dart';
 import 'package:flutter/material.dart';
@@ -42,32 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         child: Scaffold(
       backgroundColor: AppColor.pimaryColor,
       body: GetBuilder<ProfileBackend>(builder: (controller) {
-        ProfileModel model = controller.model ??
-            ProfileModel(
-              username: "",
-              email: "",
-              password: "",
-              verified: true,
-              role: "",
-              firstname: "",
-              lastname: "",
-              dob: "${DateTime.now()}",
-              gender: "",
-              weight: 0,
-              height: 0,
-              allergy: [],
-              dislikes: [],
-              image: "",
-              phonenumber: "",
-              address: "",
-              balance: 0,
-              isSubscribed: false,
-              subscriptionStartDate: 0,
-              subscriptionEndDate: 0,
-              subscriptionId: '',
-              subusers: [],
-            );
-        log("Password: ${model.password}");
+        ProfileModel model = controller.model ?? dummyProfileModel;
         return SingleChildScrollView(
           child: Padding(
             padding: EdgeInsets.symmetric(horizontal: horizontalPadding)
@@ -80,7 +58,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
                 heightBox(10),
                 ProfileMultiProfileWidget(
-                  image: model.image,
+                  model: model,
                 ),
                 heightBox(10),
                 NameAdressWidget(
@@ -448,10 +426,10 @@ class NameAdressWidget extends StatelessWidget {
 }
 
 class ProfileMultiProfileWidget extends StatelessWidget {
-  final String image;
+  final ProfileModel model;
   ProfileMultiProfileWidget({
     super.key,
-    required this.image,
+    required this.model,
   });
 
   var controller = PageController(
@@ -473,9 +451,31 @@ class ProfileMultiProfileWidget extends StatelessWidget {
               fit: BoxFit.scaleDown,
               child: index == 1
                   ? ProfileWidget(
-                      image: image,
+                      token: Get.put(ProfileBackend()).userToken,
                     )
-                  : AddProfileWidget());
+                  : model.subusers != null && model.subusers.length > 0
+                      ? InkWell(
+                          onTap: () {
+                            StorageService()
+                                .write(DbKeys.authToken, model.subusers[0]);
+                            Get.offAll(() => SplashScreen());
+                          },
+                          child: ProfileWidget(
+                            token: model.subusers[0],
+                          ),
+                        )
+                      : model.subusers != null && model.subusers.length > 1
+                          ? InkWell(
+                              onTap: () {
+                                StorageService()
+                                    .write(DbKeys.authToken, model.subusers[1]);
+                                Get.offAll(() => SplashScreen());
+                              },
+                              child: ProfileWidget(
+                                token: model.subusers[1],
+                              ),
+                            )
+                          : AddProfileWidget());
         },
       ),
     );

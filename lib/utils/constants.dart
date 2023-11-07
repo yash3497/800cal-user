@@ -1,5 +1,6 @@
 import 'package:eight_hundred_cal/model/calendar/calendar_model.dart';
 import 'package:eight_hundred_cal/model/food/food_model.dart';
+import 'package:eight_hundred_cal/model/profile/profile_model.dart';
 import 'package:eight_hundred_cal/model/restaurant/restaurant_model.dart';
 import 'package:eight_hundred_cal/model/subscription/subscription_model.dart';
 import 'package:flutter/material.dart';
@@ -197,3 +198,28 @@ FoodModel dummyFoodModel = FoodModel(
     carbs: '',
     calories: '',
     category: '');
+
+ProfileModel dummyProfileModel = ProfileModel(
+  username: "",
+  email: "",
+  password: "",
+  verified: true,
+  role: "",
+  firstname: "",
+  lastname: "",
+  dob: "${DateTime.now()}",
+  gender: "",
+  weight: 0,
+  height: 0,
+  allergy: [],
+  dislikes: [],
+  image: "",
+  phonenumber: "",
+  address: "",
+  balance: 0,
+  isSubscribed: false,
+  subscriptionStartDate: 0,
+  subscriptionEndDate: 0,
+  subscriptionId: '',
+  subusers: [],
+);

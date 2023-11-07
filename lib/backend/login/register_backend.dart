@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:eight_hundred_cal/backend/bottom_bar/bottom_bar_backend.dart';
 import 'package:eight_hundred_cal/widgets/error_snak_bar.dart';
 import 'package:get/get.dart';
 
@@ -71,13 +72,14 @@ class RegisterBackend extends GetxController {
       if (response.statusCode == 200) {
         var resBody = jsonDecode(response.body);
         String token = resBody["token"];
-        List arr = primaryModel.subusers;
+        List arr = primaryModel.subusers ?? [];
         arr.remove(token);
         model.subusers.addAll(arr);
         var resp = await HttpServices.patchWithToken(
             ApiConstants.updateProfile, jsonEncode(model.toJson()), token);
         if (resp.statusCode == 200) {
-          primaryModel.subusers.add(token);
+          arr.add(token);
+          primaryModel.subusers = arr;
           var resFinal = await HttpServices.patchWithToken(
               ApiConstants.updateProfile,
               jsonEncode(primaryModel.toJson()),
@@ -85,7 +87,7 @@ class RegisterBackend extends GetxController {
           if (resFinal.statusCode == 200) {
             Get.put(ProfileBackend()).fetchProfileData();
             Get.back();
-            Get.back();
+            Get.put(BottomBarBackend()).updateIndex(10);
           }
         }
       } else {

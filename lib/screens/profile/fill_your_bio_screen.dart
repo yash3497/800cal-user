@@ -1,9 +1,14 @@
-import 'package:eight_hundred_cal/screens/profile/update_profile.dart';
+import 'package:eight_hundred_cal/backend/login/register_backend.dart';
+import 'package:eight_hundred_cal/model/profile/profile_model.dart';
+
+import 'package:eight_hundred_cal/services/storage_service.dart';
 import 'package:eight_hundred_cal/utils/app_text.dart';
 import 'package:eight_hundred_cal/utils/colors.dart';
 import 'package:eight_hundred_cal/utils/constants.dart';
+import 'package:eight_hundred_cal/utils/db_keys.dart';
 import 'package:eight_hundred_cal/widgets/custom_button.dart';
 import 'package:eight_hundred_cal/widgets/custom_text_box.dart';
+import 'package:eight_hundred_cal/widgets/show_loader_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -25,6 +30,7 @@ class _FillYourBioScreenState extends State<FillYourBioScreen> {
   final dobController = TextEditingController();
   final genderController = TextEditingController();
   final emailController = TextEditingController();
+  final passwordsController = TextEditingController();
   final phoneNumberController = TextEditingController();
   final heightController = TextEditingController();
   final weightController = TextEditingController();
@@ -87,7 +93,7 @@ class _FillYourBioScreenState extends State<FillYourBioScreen> {
                       context, DateTime(1900), DateTime(2025));
                   dob = value.toString();
                   dobController.text =
-                      "${DateFormat('dd MMM, yyyy').format(value!)}";
+                      "${DateFormat('dd MMM, yyyy').format(value)}";
                 },
               ),
               heightBox(20),
@@ -104,6 +110,11 @@ class _FillYourBioScreenState extends State<FillYourBioScreen> {
               CustomTextBox(
                   controller: emailController,
                   hintText: c.lang == 'en' ? AppText.emailEn : AppText.emailAr),
+              heightBox(20),
+              CustomTextBox(
+                  controller: passwordsController,
+                  hintText:
+                      c.lang == 'en' ? AppText.passwordEn : AppText.passwordAr),
               heightBox(20),
               CustomTextBox(
                   controller: phoneNumberController,
@@ -126,7 +137,7 @@ class _FillYourBioScreenState extends State<FillYourBioScreen> {
               CustomButton(
                 text: c.lang == 'en' ? AppText.nextEn : AppText.nextAr,
                 width: width(context),
-                onTap: () {
+                onTap: () async {
                   if (nameController.text.isNotEmpty &&
                       surnameController.text.isNotEmpty &&
                       dobController.text.isNotEmpty &&
@@ -135,7 +146,37 @@ class _FillYourBioScreenState extends State<FillYourBioScreen> {
                       emailController.text.isNotEmpty &&
                       phoneNumberController.text.isNotEmpty &&
                       heightController.text.isNotEmpty &&
-                      weightController.text.isNotEmpty) {}
+                      weightController.text.isNotEmpty &&
+                      passwordsController.text.isNotEmpty) {
+                    ProfileModel model = ProfileModel(
+                        username: emailController.text,
+                        email: emailController.text,
+                        password: passwordsController.text,
+                        verified: true,
+                        role: "user",
+                        firstname: nameController.text,
+                        lastname: surnameController.text,
+                        dob: dob,
+                        gender: genderController.text,
+                        weight: int.parse(weightController.text),
+                        height: int.parse(heightController.text),
+                        allergy: [],
+                        dislikes: [],
+                        image:
+                            'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=800&auto=format&fit=crop&q=60&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8YXZhdGFyfGVufDB8fDB8fHww',
+                        phonenumber: phoneNumberController.text,
+                        address: addressController.text,
+                        balance: 0,
+                        isSubscribed: false,
+                        subscriptionStartDate: 0,
+                        subscriptionEndDate: 0,
+                        subscriptionId: '',
+                        subusers: [
+                          await StorageService().read(DbKeys.authToken),
+                        ]);
+                    showLoaderDialog(context);
+                    Get.put(RegisterBackend()).registerSubProfile(model);
+                  }
                 },
               ),
               heightBox(120),
